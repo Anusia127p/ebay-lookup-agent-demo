@@ -1,19 +1,13 @@
-import os
+# streamlit_app.py
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
-from PIL import Image
-import tempfile
-from pyzbar.pyzbar import decode
 
 st.set_page_config(page_title="Agent Demo: eBay Lookup", layout="centered")
 st.title("🔍 eBay Lookup Agent Demo")
-st.write("Upload a product image (with a barcode) or enter keywords/EAN to see how an agent can fetch listings from eBay.com")
+st.write("Enter EAN, UPC, or keywords to see how an agent can fetch listings from eBay.com")
 
-def decode_barcode_from_image(image_path):
-    img = Image.open(image_path)
-    barcodes = decode(img)
-    return barcodes[0].data.decode('utf-8') if barcodes else None
+# Function to search eBay via web scraping
 
 def search_ebay_web(query, max_results=5):
     url = f"https://www.ebay.com/sch/i.html?_nkw={requests.utils.quote(query)}"
@@ -33,27 +27,8 @@ def search_ebay_web(query, max_results=5):
             })
     return items
 
-mode = st.radio("Input mode:", ["Upload Image", "Enter Text Query"], index=0)
-query = None
-
-if mode == "Upload Image":
-    uploaded = st.file_uploader("Upload a photo of your product (with barcode):", type=['png','jpg','jpeg'])
-    if uploaded:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded.name)[1]) as tmp:
-            tmp.write(uploaded.read())
-            tmp_path = tmp.name
-        st.image(tmp_path, caption="Uploaded Image", use_column_width=True)
-        with st.spinner("Decoding barcode..."):
-            code = decode_barcode_from_image(tmp_path)
-        if code:
-            st.success(f"Detected barcode: {code}")
-            query = code
-        else:
-            st.warning("No barcode detected — please switch to Text Query mode.")
-
-elif mode == "Enter Text Query":
-    query = st.text_input("Enter EAN, UPC, or keywords:")
-
+# UI for text input only
+query = st.text_input("Enter EAN, UPC, or keywords:")
 limit = st.slider("How many results to fetch?", 1, 10, 5)
 if query and st.button("🔍 Search eBay"):
     with st.spinner(f"Searching eBay for '{query}'..."):
@@ -63,9 +38,10 @@ if query and st.button("🔍 Search eBay"):
                 st.error("No results found.")
             else:
                 for idx, item in enumerate(results, 1):
-                    st.markdown(f"**Result {idx}:** [{item['title']}]({item['link']})  \nPrice: {item['price']}")
+                    st.markdown(f"**Result {idx}:** [{item['title']}]({item['link']})  
+  Price: {item['price']}")
         except Exception as e:
             st.error(f"Error during search: {e}")
 
 st.markdown("---")
-st.caption("Prototype demo – scrape-based lookup from ebay.com. Not for production use.")
+st.caption("Prototype demo – scrape-based lookup from ebay.com. Only text input supported.")
