@@ -7,7 +7,7 @@ st.set_page_config(page_title="Agent Demo: eBay Lookup", layout="centered")
 st.title("🔍 eBay Lookup Agent Demo")
 st.write("Enter EAN, UPC, or keywords to see how an agent can fetch listings from eBay.com")
 
-# Function to search eBay via web scraping
+# Search function using web scraping
 
 def search_ebay_web(query, max_results=5):
     url = f"https://www.ebay.com/sch/i.html?_nkw={requests.utils.quote(query)}"
@@ -27,9 +27,10 @@ def search_ebay_web(query, max_results=5):
             })
     return items
 
-# UI for text input only
+# Main app UI
 query = st.text_input("Enter EAN, UPC, or keywords:")
 limit = st.slider("How many results to fetch?", 1, 10, 5)
+
 if query and st.button("🔍 Search eBay"):
     with st.spinner(f"Searching eBay for '{query}'..."):
         try:
@@ -38,8 +39,10 @@ if query and st.button("🔍 Search eBay"):
                 st.error("No results found.")
             else:
                 for idx, item in enumerate(results, 1):
-                    st.markdown(f"**Result {idx}:** [{item['title']}]({item['link']})  
-  Price: {item['price']}")
+                    # Build markdown strings
+                    link_md = f"**Result {idx}:** [{item['title']}]({item['link']})"
+                    price_md = f"Price: {item['price']}"
+                    st.markdown(f"{link_md}  \n{price_md}")
         except Exception as e:
             st.error(f"Error during search: {e}")
 
